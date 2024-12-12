@@ -70,7 +70,7 @@ kmed
 ```{r}
 # Realizar PCA en los datos escalados
 pca <- prcomp(df, center = TRUE, scale. = TRUE)
-pca_data <- as.data.frame(pca$x[, 1:2])  # Extract the first 2 principal components
+pca_data <- as.data.frame(pca$x[, 1:2])  
 colnames(pca_data) <- c("PC1", "PC2")
 
 # Graficar datos originales sin clustering
@@ -206,7 +206,7 @@ dist_mat  <- as.matrix(round(dist,3))
 as.dist(dist_mat[1:6,1:6])
 ```
 
-# Número optimo de clusters
+## Número optimo de clusters
 
 ```{r}
 fviz_nbclust(data.scaled, FUN = hcut, method = "silhouette")
