@@ -1,20 +1,117 @@
 ---
-title: 
+title: Métodos de Clustering
 author: 
-date: "2024-12-05"
-output: html_document
+  - Estudiantes
+  - Ashley Arrieta Padilla - C00753
+  - Sofía Bocker Brenes - C11102
+  - Naydelin Hernández Vargas - C03795
+output: 
+  rmdformats::robobook:
+    highlight: tango
 ---
+
 ```{r}
+# Instalar paquetes con funciones útiles para aplicar los métodos
+library(factoextra)
+library(cluster)
 library(dendextend)
-library(factoextra) #numero optimo
 library(dbscan)
 library(ggplot2)
-
-
+library(gridExtra)
 ```
-#K-medoid
 
-#DBSCAN
+# K-medoid
+
+```{r}
+# Referencia: https://www.statology.org/k-medoids-in-r/
+
+# cargar data
+df <- USArrests
+
+# quitar filas con valores nulos
+df <- na.omit(df)
+
+# escalar cada variable para tener una media de 0 y una desviación estándar de 1
+df <- scale(df)
+
+# ver las primeras seis filas de la base de datos
+head(df)
+```
+
+```{r}
+# Dos gráficos que ayudan a decidir cuál es la cantidad óptima de clústers
+
+# método del codo
+fviz_nbclust(df, pam, method = "wss")
+```
+
+```{r}
+# Calcular la estadística de brecha en función del número de clústeres
+gap_stat <- clusGap(df,
+                    FUN = pam,
+                    K.max = 10, # máximo de clústeres a considerar
+                    B = 50) # iteraciones totales con bootstrap
+
+# representación gráfica del número de conglomerados frente a la estadística de brecha
+fviz_gap_stat(gap_stat)
+```
+
+```{r}
+# Semilla para poder reproducir el ejemplo
+set.seed(1)
+
+# Función que ejecuta el método k-medoids
+kmed <- pam(df, k = 4)
+
+# ver resultados
+kmed
+```
+
+```{r}
+# Realizar PCA en los datos escalados
+pca <- prcomp(df, center = TRUE, scale. = TRUE)
+pca_data <- as.data.frame(pca$x[, 1:2])  # Extract the first 2 principal components
+colnames(pca_data) <- c("PC1", "PC2")
+
+# Graficar datos originales sin clustering
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_point(color = "orange", size = 3, alpha = 0.7) +
+  labs(title = "Datos antes del clustering", x = "x", y = "y") +
+  theme_minimal()
+```
+
+
+```{r}
+# Graficar los resultados del modelo final de k-medoides
+
+library(factoextra)
+fviz_cluster(kmed, data = df, 
+             main = "Datos después del clustering")
+```
+
+```{r}
+# Datos antes del clustering
+p1 <- ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_point(color = "orange", size = 3, alpha = 0.7) +
+  labs(title = "Datos antes del clustering", x = "x", y = "y") +
+  theme_minimal()
+
+# Datos después del clustering
+p2 <- fviz_cluster(kmed, data = df) + labs(title = "Datos después del clustering")
+
+# Compracación lado a lado
+grid.arrange(p1, p2, ncol = 2)
+```
+
+```{r}
+# Agregar asignación de clúster a los datos originales
+final_data <- cbind(USArrests, cluster = kmed$cluster)
+
+# ver datos finales
+head(final_data)
+```
+
+# DBSCAN
 
 ```{r}
 #Referencia: https://github.com/sandipanpaul21/Clustering-in-Python/blob/master/11_DBScan_Clustering.ipynb
@@ -88,11 +185,14 @@ La función PuntosEnCirculo genera puntos en un patrón circular utilizando func
 
 
 
-#Clustering Jerarquico
+# Clustering Jerárquico
+
 ```{r}
 USArrests
 ```
-#Escalar
+
+## Escalar
+
 ```{r}
 data.scaled <- scale(x = USArrests,
                      center = TRUE,
@@ -106,7 +206,8 @@ dist_mat  <- as.matrix(round(dist,3))
 as.dist(dist_mat[1:6,1:6])
 ```
 
-#numeor optimo de clusters
+# Número optimo de clusters
+
 ```{r}
 fviz_nbclust(data.scaled, FUN = hcut, method = "silhouette")
 ```
